@@ -35,6 +35,9 @@ movable = False
 x = y = startClock = endClock = 0
 startTimer = True
 
+root = Tk()
+root.withdraw()
+
 def __init__(self):
 	pygame.sprite.Sprite.__init__(self)
 	screen = pygame.display.get_surface()
@@ -90,21 +93,39 @@ def win():
 for i in range(numElements):
 	ANSWERKEY.append(Tile(imageFolder+tileNames[i], tileCoords[i][0], tileCoords[i][1]))
 
-#randomly populate the board with tiles
+##randomly populate the board with tiles
+#for i in range(numElements):
+#	rInt = random.randint(0, len(tileNames)-1)
+#	rLoc = tileCoords[i]
+#	BackGround.append(Tile(imageFolder+tileNames[rInt], rLoc[0], rLoc[1]))
+#	if tileNames[rInt] == 'blank.png':
+#		emptyTile = [BackGround[i].x, BackGround[i].y]
+#	tileNames.remove(tileNames[rInt])
+#	if BackGround[i].name == ANSWERKEY[i].name:
+#		POINTS += 1
+
+#populate the board
 for i in range(numElements):
-	rInt = random.randint(0, len(tileNames)-1)
-	rLoc = tileCoords[i]
-	BackGround.append(Tile(imageFolder+tileNames[rInt], rLoc[0], rLoc[1]))
-	if tileNames[rInt] == 'blank.png':
+	BackGround.append(Tile(imageFolder+tileNames[i], tileCoords[i][0], tileCoords[i][1]))
+	if tileNames[i] == 'blank.png':
 		emptyTile = [BackGround[i].x, BackGround[i].y]
-	tileNames.remove(tileNames[rInt])
-	if BackGround[i].name == ANSWERKEY[i].name:
-		POINTS += 1
+
+#randomize location of tiles
+def randomize():
+	rInt = random.randint(75, 150)
+	while rInt > 0:
+		j = random.randint(0, 24)
+		if canMove(BackGround[j]):
+			emptyTileIndex = getIndex(emptyTile)
+			move(BackGround[j], BackGround[emptyTileIndex])
+			rInt -= 1
+
+randomize()
 
 #initialize pygame
 pygame.init()
 screen = pygame.display.set_mode((1000, 1000))
-pygame.display.set_caption('Tile Game (NOTE: impossible puzzles exist due to parity)')
+pygame.display.set_caption('Tile Game (NOTE: press H for hint)')
 
 while True: # main game loop
 
@@ -112,14 +133,6 @@ while True: # main game loop
 	for i in range(len(BackGround)):
 		screen.blit(BackGround[i].image, (BackGround[i].x, BackGround[i].y))
 		#pygame.display.update()
-
-	#upon completion of the puzzlebox a message will popup
-	if win():
-		endClock = time.time()
-		timeTaken = endClock-startClock
-		messagebox.showinfo('You Win!', 'Congratulations! You have successfully completed the puzzle box!\nIt only took: %i seconds!' % (int(timeTaken)))
-		pygame.quit()
-		sys.exit()
 
 	#listening for events from user
 	for event in pygame.event.get():
@@ -132,6 +145,10 @@ while True: # main game loop
 					BackGround[i].image, ANSWERKEY[i].image = ANSWERKEY[i].image, BackGround[i].image
 					BackGround[i].x, ANSWERKEY[i].x = ANSWERKEY[i].x, BackGround[i].x
 					BackGround[i].y, ANSWERKEY[i].y = ANSWERKEY[i].y, BackGround[i].y
+			elif event.key == pygame.K_r:
+				for i in range(numElements):
+					BackGround[i] = ANSWERKEY[i]
+				randomize()
 
 		#show real board on h key release
 		if event.type == KEYUP:
@@ -162,11 +179,23 @@ while True: # main game loop
 				emptyTileIndex = getIndex(emptyTile)
 				clickedTileIndex = getIndex([clickedTile.x, clickedTile.y])
 				move(BackGround[clickedTileIndex], BackGround[emptyTileIndex])
+
 				#screen.blit(clickedTile.image, [clickedTile.x, clickedTile.y])
 				#screen.blit(emptyTile.image, [emptyTile.x, emptyTile.y])
 				#screen.blit(BackGround[clickedTileIndex].image, [BackGround[clickedTileIndex].x, BackGround[clickedTileIndex].y])
 				#screen.blit(BackGround[emptyTileIndex].image, [BackGround[emptyTileIndex].x, BackGround[emptyTileIndex].y])
 				#pygame.display.update()
+
+				# upon completion of the puzzlebox a message will popup
+				if win():
+					pygame.display.update()
+					endClock = time.time()
+					timeTaken = endClock - startClock
+					messagebox.showinfo('You Win!',
+										'Congratulations! You have successfully completed the puzzle box!\nIt only took: %i seconds!' % (
+										int(timeTaken)))
+					pygame.quit()
+					sys.exit()
 
 		if event.type == QUIT:
 
