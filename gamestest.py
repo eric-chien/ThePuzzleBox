@@ -22,8 +22,10 @@ tileCoords = [(0, 0), (200, 0), (400, 0), (600, 0), (800,0),
 			  (0, 600), (200, 600), (400, 600), (600, 600), (800, 600),
 			  (0, 800) , (200, 800), (400, 800), (600, 800), (800,800)]
 
+#directory of where images are located
 imageFolder = 'images/'
 
+#initialize required variables
 ANSWERKEY = []
 POINTS = 0
 TILESIZE = 200
@@ -34,7 +36,6 @@ emptyTile = []
 movable = False
 x = y = startClock = endClock = 0
 startTimer = True
-
 root = Tk()
 root.withdraw()
 
@@ -66,49 +67,12 @@ def getIndex(coords):
 		if [coords[0], coords[1]] == [tileCoords[i][0], tileCoords[i][1]]:
 			return i
 
-def firstMove():
-	return startTimer
-
-##Moving a tile into the correct location should add one point. Moving a correct off of a correct location should subtract one point.
-#def correctMove(self, other, answer):
-#	for Tile in BackGround:
-#		if other.x == answer.x and other.y == answer.y:
-#			correctName = answer.name
-#	if correctName == answer.name:
-#		return True
-#	return False
-#
-##win condition is all 25 tiles in their corresponding locations, or 25 correct points
-#def win():
-#	return POINTS == 25
-
-#brute force win condition to get it working... very slow implementation and lots to improve on...
+#win condition is all tile names and locations match that of the answer key
 def win():
 	for i in range(numElements):
 		if BackGround[i].name != ANSWERKEY[i].name:
 			return False
 	return True
-
-#populate the answerkey
-for i in range(numElements):
-	ANSWERKEY.append(Tile(imageFolder+tileNames[i], tileCoords[i][0], tileCoords[i][1]))
-
-##randomly populate the board with tiles
-#for i in range(numElements):
-#	rInt = random.randint(0, len(tileNames)-1)
-#	rLoc = tileCoords[i]
-#	BackGround.append(Tile(imageFolder+tileNames[rInt], rLoc[0], rLoc[1]))
-#	if tileNames[rInt] == 'blank.png':
-#		emptyTile = [BackGround[i].x, BackGround[i].y]
-#	tileNames.remove(tileNames[rInt])
-#	if BackGround[i].name == ANSWERKEY[i].name:
-#		POINTS += 1
-
-#populate the board
-for i in range(numElements):
-	BackGround.append(Tile(imageFolder+tileNames[i], tileCoords[i][0], tileCoords[i][1]))
-	if tileNames[i] == 'blank.png':
-		emptyTile = [BackGround[i].x, BackGround[i].y]
 
 #randomize location of tiles
 def randomize():
@@ -120,6 +84,18 @@ def randomize():
 			move(BackGround[j], BackGround[emptyTileIndex])
 			rInt -= 1
 
+
+#populate the answer key
+for i in range(numElements):
+	ANSWERKEY.append(Tile(imageFolder+tileNames[i], tileCoords[i][0], tileCoords[i][1]))
+
+#populate the board
+for i in range(numElements):
+	BackGround.append(Tile(imageFolder+tileNames[i], tileCoords[i][0], tileCoords[i][1]))
+	if tileNames[i] == 'blank.png':
+		emptyTile = [BackGround[i].x, BackGround[i].y]
+
+#randomize the board (initial state is the same as answer key)
 randomize()
 
 #initialize pygame
@@ -137,7 +113,7 @@ while True: # main game loop
 	#listening for events from user
 	for event in pygame.event.get():
 
-		#show hint on h key downpress
+		#show hint on h key downpress or randomize board on r key downpress
 		if event.type == KEYDOWN:
 			if event.key == pygame.K_h:
 				movable = False
@@ -164,29 +140,22 @@ while True: # main game loop
 			for Tile in BackGround:
 				if Tile.rect.collidepoint(pos):
 					clickedTile = Tile
-#			for Tile in ANSWERKEY:
-#				if Tile.rect.collidepoint(pos):
-#					clickedTileANSWER = Tile
 
 			#If movable then move the tile
 			movable = canMove(clickedTile)
+
 			if movable:
 				#start the timer upon the user's first move
-				if firstMove():
+				if startTimer:
 					startTimer = False
 					startClock = time.time()
+
 				#get the locations of the empty tile and clicked tile, then move the two tiles
 				emptyTileIndex = getIndex(emptyTile)
 				clickedTileIndex = getIndex([clickedTile.x, clickedTile.y])
 				move(BackGround[clickedTileIndex], BackGround[emptyTileIndex])
 
-				#screen.blit(clickedTile.image, [clickedTile.x, clickedTile.y])
-				#screen.blit(emptyTile.image, [emptyTile.x, emptyTile.y])
-				#screen.blit(BackGround[clickedTileIndex].image, [BackGround[clickedTileIndex].x, BackGround[clickedTileIndex].y])
-				#screen.blit(BackGround[emptyTileIndex].image, [BackGround[emptyTileIndex].x, BackGround[emptyTileIndex].y])
-				#pygame.display.update()
-
-				# upon completion of the puzzlebox a message will popup
+				# upon completion of the puzzlebox, display win message
 				if win():
 					pygame.display.update()
 					endClock = time.time()
@@ -203,4 +172,5 @@ while True: # main game loop
 
 			sys.exit()
 
+	#update user display
 	pygame.display.update()
